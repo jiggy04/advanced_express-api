@@ -109,13 +109,14 @@ const updateArticleById = async (req, res, next) => {
                 facebook: Joi.string().uri().optional(),
                 X: Joi.string().uri().optional(),
                 instagram: Joi.string().uri()
-                .optional()
+                .optional(),
+                LinkedIn: Joi.string().uri().optional()
             })
 
 
         })
         
-        const {error, value} = articleSchema.validate(value)  //validation: validate the request body against the schema
+        const {error, value} = articleSchema.validate(req.body)  //validation: validate the request body against the schema
         if (error) {
             return res.status(400).json({error: error.details[0].message})
         }
