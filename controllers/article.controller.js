@@ -1,4 +1,4 @@
-const Joi = require('Joi')   //import Joi for data validation to ensure that the incoming request data meets the defined schema requirements
+const Joi = require('joi')   //import Joi for data validation to ensure that the incoming request data meets the defined schema requirements
 const ArticleModel = require('../models/article.model')  //import the Article model to interact with the articles collection in the database
 
 //Create validation rules
