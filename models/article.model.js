@@ -12,11 +12,12 @@ const articleSchema = new mongoose.Schema({
         minLength: 20
     },
     author: {
-        type: String,
-        default: 'Guest'
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
     images: [String],
-    comment: {
+    comments: {
         body: {
             type: String
         }, 
@@ -24,7 +25,8 @@ const articleSchema = new mongoose.Schema({
             type: String
         },
         date: {
-            type: Date
+            type: Date,
+            default: Date.now
         }
     },
     socialLinks: {

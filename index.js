@@ -7,6 +7,7 @@ const Article = require('./models/article.model')
 const logRequest = require('./middlewares/logger')
 const errorHandler = require('./middlewares/errorHandler')
 const ArticleRoute = require('./routes/article.route')
+const UserRoutes = require('./routes/user.route')
 
 const app = express();
 const PORT =  process.env.PORT || 3000
@@ -21,6 +22,7 @@ app.use(cors('*'))
 app.use(logRequest);
 
 app.use('/api', ArticleRoute)
+app.use('/api/users', UserRoutes)
 
 app.use(errorHandler);
 

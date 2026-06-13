@@ -7,7 +7,6 @@ const postArticle = async (req, res, next ) => {
         const articleSchema = Joi.object({
             title: Joi.string().min(5).required(),
             content: Joi.string().min(20).required(),
-            author: Joi.string().default('Guest'),
             images: Joi.array().items(Joi.string()).optional(),
             comment: Joi.object({
                 body: Joi.string().min(10).required(),
@@ -29,7 +28,12 @@ const postArticle = async (req, res, next ) => {
             return res.status(400).json({error: error.details[0].message})
         }
 
-        const newArticle = new ArticleModel(value)  //create a new article instance using the validated data
+        const newArticle = new ArticleModel({
+            title: req.body.title,
+            content: req.body.content,
+            author: req.user._id
+        })  //create a new article instance using the validated data
+        
         await newArticle.save();  //save the new article to the database
 
         return res.status(201).json({message: 'Article created successfully', data:newArticle})
@@ -98,7 +102,6 @@ const updateArticleById = async (req, res, next) => {
          const articleSchema = Joi.object({
             title: Joi.string().min(5).optional(),
             content: Joi.string().min(20).optional(),
-            author: Joi.string().optional(),
             images: Joi.array().items(Joi.string()),
             comments: Joi.array().items(Joi.object({
                 body: Joi.string().min(10),
@@ -124,7 +127,7 @@ const updateArticleById = async (req, res, next) => {
 
     try {
         const updatedArticle = await ArticleModel.findByIdAndUpdate(req.params.id, {...req.body}, {
-            new: true, runvalidators: true
+            new: true, runValidators: true
         } ); //update an existing article by its ID in the database
 
         if(!updatedArticle) {
