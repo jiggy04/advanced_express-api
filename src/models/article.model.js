@@ -1,3 +1,5 @@
+// Article model to define the schema for articles in the database
+
 const mongoose = require('mongoose');
 
 const articleSchema = new mongoose.Schema({
@@ -6,7 +8,7 @@ const articleSchema = new mongoose.Schema({
         required: true,
         minLength: 5
     },
-    content:{
+    content: {
         type: String,
         required: true,
         minLength: 20
@@ -20,7 +22,7 @@ const articleSchema = new mongoose.Schema({
     comments: {
         body: {
             type: String
-        }, 
+        },
         author: {
             type: String
         },
@@ -36,7 +38,7 @@ const articleSchema = new mongoose.Schema({
         LinkedIn: String
     }
 
-},{timestamps: true});
+}, { timestamps: true });
 
 const Article = mongoose.model('Article', articleSchema);
 

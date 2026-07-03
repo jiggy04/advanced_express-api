@@ -1,4 +1,4 @@
-
+// middleware to log incoming requests with timestamp, method, URL, and IP address
 
 
 const logRequest = (req, res, next) => {
