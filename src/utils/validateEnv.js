@@ -18,7 +18,7 @@ const validateEnv = () => {
     if (missingEnvVars.length > 0) {
             console.error('\nEnvironment validation failed.');
             console.error(
-                'Missing required environment variable(s): ${missingEnvVars.join(',')}'
+                `Missing required environment variable(s): ${missingEnvVars.join(',')}`
             );
         process.exit(1);
     }
