@@ -1,20 +1,19 @@
 // Article controller to handle CRUD operations for articles
 
-const Joi = require('joi')   //import Joi for data validation to ensure that the incoming request data meets the defined schema requirements
+const mongoose = require ('mongoose')
 const ArticleModel = require('../models/article.model')  //import the Article model to interact with the articles collection in the database
 
 //Create validation rules
 const postArticle = async (req, res, next) => {
     try {
 
+        const {title, content} = req.body
 
-        const newArticle = new ArticleModel({
-            title: req.body.title,
-            content: req.body.content,
+        const newArticle = await ArticleModel.create({
+            title,
+            content,
             author: req.user._id
         })  //create a new article instance using the validated data
-
-        await newArticle.save();  //save the new article to the database
 
         return res.status(201).json({ message: 'Article created successfully', data: newArticle })
 
@@ -26,51 +25,67 @@ const postArticle = async (req, res, next) => {
 }
 
 const getAllArticle = async (req, res, next) => {
-    const { search, limit = 10, page = 1 } = req.query;
+    try {
+        const { search = '', limit = 10, page = 1 } = req.query;
 
-    const limitNum = parseInt(limit);
-    const pageNum = parseInt(page);
+    const pageNum = Math.max(parseInt(page,10) ||1, 1);
+    const limitNum = Math.max(parseInt(limit, 10) || 10, 1);
     const skip = (pageNum - 1) * limitNum;
 
-    let filter = {};
-    if (search) {
-        filter = {
+    const filter = search
+        ? {
             $or: [
                 { title: { $regex: search, $options: 'i' } },
                 { content: { $regex: search, $options: 'i' } },
-                { author: { $regex: search, $options: 'i' } }
             ]
         }
-    }
-    console.log('Search:', search);
-    console.log('filter:', filter);
+        :{}
+        const total = await articleModel.countDocuments(filter);
 
 
-    try {
         const articles = await ArticleModel.find(filter)
-            .sort({ createdAt: -1 }).limit(limitNum).skip(skip);  //fetch all articles from the database
+        .populate('author', 'name email')
+        .sort({ createdAt: -1 }).skip(skip).limit(limitNum);  //fetch all articles from the database
 
-        return res.status(200).json({
-            message: 'Articles Fetched',
-            page: pageNum,
-            limit: limitNum,
-            data: articles
-        })  //return the fetched articles in the response
+    return res.status(200).json({
+        success: true,
+        message: 'Articles Fetched',
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total/limitNum),
+        data: articles
+    }) 
 
-    } catch (error) {
+
+
+    }catch (error) {
         console.error(error);
         next(error)
-
     }
-}
+}    
+
 
 const getArticleById = async (req, res, next) => {
     try {
-        const article = await ArticleModel.findById(req.params.id); //fetch a single article by its ID from the database
+        const {id} = req.params;
+        if(!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: true,
+                message: 'Invalid article ID'
+
+            });
+
+        }
+
+
+        const article = await ArticleModel.findById(id)
+        .populate('author', 'name email');  //  
+        
         if (!article) {
             return res.status(404).json({ message: 'Article not found' });
         }
-        return res.status(200).json({ message: 'Article found', data: article });
+        return res.status(200).json({ success: true, message: 'Article found', data: article });
 
     } catch (error) {
         console.error(error);
@@ -81,14 +96,43 @@ const getArticleById = async (req, res, next) => {
 const updateArticleById = async (req, res, next) => {
 
     try {
-        const updatedArticle = await ArticleModel.findByIdAndUpdate(req.params.id, { ...req.body }, {
-            new: true, runValidators: true
-        }); //update an existing article by its ID in the database
+        const {id} = req.params;
+
+        if(!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: true,
+                message: 'Invalid article ID'
+
+            });
+
+        }
+
+        const updatedArticle = await ArticleModel.findById(id); 
 
         if (!updatedArticle) {
             return res.status(404).json({ message: 'Article not Found' });
         }
-        return res.status(200).json({ message: 'Article updated successfully', data: updatedArticle });
+
+        // only the owner can update
+        if (updatedArticle.author.toString() !== req.user._id.toString()){
+            return res.status(403).json({
+                success: false,
+                message: 'You are not authorized to update this article'
+            });
+        }
+
+        const {title, content} = req.body
+
+        if (title !== undefined) updatedArticle.title = title;
+        if (content !== undefined) article.content = content;
+
+        await article.save();
+
+
+        return res.status(200).json({ 
+            success: true, 
+            message: 'Article updated successfully', 
+            data: updatedArticle });
 
     } catch (error) {
         console.error(error);

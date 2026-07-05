@@ -3,38 +3,62 @@
 const Joi = require('joi');
 
 const registerSchema = Joi.object({
-        name: Joi.string().min(2).required(),
-        email: Joi.string().email().required(),
+        name: Joi.string().trim().min(2).required().messages({
+            "string.empty": "Name is required",
+            "string.min": "Name must be at least 2 characters"
+        }),
+        email: Joi.string().trim().email().required(),
         password: Joi.string().min(6).required()
-    })
+    }).options({
+            allowUnknown: false
+        })
 
-    const registerValidation = (req, res, next) => {
-        const {error} = registerSchema.validate(req.body);
-        if (error) {
-            return res.status(400).json({ message: error.details[0].message})
-        }
-        next();
-    }
+    // const registerValidation = (req, res, next) => {
+    //     const {error} = registerSchema.validate(req.body, {abortEarly: false});
+    //     if (error) {
+    //         return res.status(400).json({ message: error.details.map(err => err.message)})
+    //     }
+    //     next();
+    // }
 
 
 const loginSchema = Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().min(6).required()
-    });
+    email: Joi.string().trim().email().required(),
+    password: Joi.string().required()
+    }).options({
+        abortEarly: false
+    }).options({allowUnknown: false});
 
+    const validate = (schema) => {
+        return (req, res, next) => {
+            const {error, value} = schema.validate(req.body, {
+                abortEarly: false
+            });
 
-    const loginValidation = (req, res, next) => {
-        const {error} = loginSchema.validate(req.body);
-        if (error) {
-            return res.status(400).json({message: error.details[0].message})
+            if(error) {
+            return res.status(400).json({
+                message: error.details.map(err =>err.message)
+            });
+        }
+        req.body = value;
+        next();
+        };
     };
-    next();
-    }
+
+
+
+    // const loginValidation = (req, res, next) => {
+    //     const {error} = loginSchema.validate(req.body);
+    //     if (error) {
+    //         return res.status(400).json({message: error.details[0].message})
+    // };
+    // next();
+    // }
 
 
     module.exports = {
-        registerValidation,
-        loginValidation
+        registerValidation: validate(registerSchema),
+        loginValidation: validate(loginSchema)
     }
 
  
