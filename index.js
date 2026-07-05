@@ -4,7 +4,7 @@ require('dotenv').config();
 const validateEnv = require ('./src/utils/validateEnv')
 validateEnv();
 
-const ConnectDB = require('./src/config/ConnectDB');
+const ConnectDB = require('./src/config/connectDB');
 const app = require('./src/app');
 
 
